@@ -405,7 +405,6 @@ Hoho6 = lala6$parcomparisons
 Hoho6[Hoho6$Congruent != Hoho6$Congruent2 & Hoho6$velH == Hoho6$velH2,] %>%
   arrange(.,velH,parn)
 
-?sort
 
 ggplot(a[a$id == "Bjorn",], aes(PestNr,Step_Size_OnTrial), col = as.factor(velH)) +
   geom_linN2 -e() +
