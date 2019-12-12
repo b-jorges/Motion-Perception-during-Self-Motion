@@ -77,24 +77,24 @@ Data_GLM = Data_GLM %>%
   )
 
 #####Plot data raw data for all subjects included in analysis
-ggplot(a[a$id %in% c("Meaghan", "Bjorn2", "John", "Abi", "Bob"),], aes ( x = Difference, y = Pest_Bigger, col = as.factor(Congruent))) +
+ggplot(a[a$id %in% c("Meaghan", "Bjorn2", "John", "Abi", "Bob", "Laurence2"),], aes ( x = Difference, y = Pest_Bigger, col = as.factor(Congruent))) +
   binomial_smooth() +
   facet_grid(id~velH)
 ggsave("PlotsPilotData.jpg", w=10, h=10)
 
 mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob"),])
+             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
 mod2 = glmer(cbind(Yes, Total - Yes) ~ (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob"),])
+             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
 
 mod3 = glmer(cbind(Yes, Total - Yes) ~ Congruent*Difference + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob"),])
+             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
 mod4 = glmer(cbind(Yes, Total - Yes) ~ Congruent + Difference + (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob"),])
+             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
 
 summary(mod1)
 coef(mod1)
