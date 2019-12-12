@@ -515,6 +515,7 @@ mod4 = glmer(cbind(Yes, Total - Yes) ~ Congruent + Difference + (Difference | id
 summary(mod1)
 coef(mod1)
 anova(mod1,mod2)
+
 summary(mod3)
 anova(mod4,mod3)
 

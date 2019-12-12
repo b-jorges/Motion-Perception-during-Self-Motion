@@ -1,13 +1,9 @@
 ###Pull the whole repository and paste the path to the the local GitHub repository here:
-setwd("C:/Users/bjoer/Documents/GitHub/Motion-Perception-during-Self-Motion") 
-
 require(dplyr)
 require(tidyverse)
 require(lme4)
-require(quickpsy)
 library(PearsonDS)
 theme_set(theme_cowplot())
-
 set.seed(912)
 
 #####This is the function from which I choose which comparison values we put into the modelling part: 
@@ -42,7 +38,7 @@ SimulatePsychometricFunction = function(ID,Motion,velH, reps){
     group_by(ID,Motion,velH) %>%
     mutate(
       EffectOfSelfMotion.Accuracy = (velH+Motion/8)*PSE_Factor_ID, ###get PSE: +/- 1/8 of selfmotion, aaaand some inter-subject variability (PSE_Factor_ID)
-      velH_pest_factor = rpearson(length(reps), moments = moments), ###get stimulus strengths in accordance with staircase (lots of values around PSE, fewer in the periphery)
+      velH_pest_factor = rpearson(length(reps), moments = moments), ###get vector of presented stimulus velocities in accordance with staircase (lots of values around PSE, fewer in the periphery)
       velH_shown=EffectOfSelfMotion.Accuracy*velH_pest_factor, ###translates from values around 1 to values around PSE
       ####Get SD for cumulative Gaussian: 0.15*PSE + 0.05*PSE if selfmotion is present, aaaand some inter-subject variability (SD_Factor_ID)
       EffectOfSelfMotion.Precision = (abs(EffectOfSelfMotion.Accuracy*0.15)+abs(EffectOfSelfMotion.Accuracy*0.05*(Motion!=0)))*SD_Factor_ID,
@@ -107,14 +103,14 @@ Power_Precision = c()
 nIterations = 100
 out <- replicate(nIterations, {
   Analyze_Pychometric_Precision(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps))})
-hist(out)
-Power_Precision = mean(out < 0.05)
-Power_Precision
+hist(out) ###Distribution of p values
+Power_Precision = mean(out < 0.05) ###Power is the times the difference between the two models is significant
+Power_Precision ###This is the power for the JNDs
 
 Power_Accuracy = c()
 nIterations = 100
 out2 <- replicate(nIterations, {
   Analyze_Pychometric_Accuracy(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps))})
-hist(out2)
-Power_Accuracy = mean(out2 < 0.05)
-Power_Accuracy
+hist(out2) ###Distribution of p values
+Power_Accuracy = mean(out2 < 0.05) ###Power is the times the difference between the two models is significant
+Power_Accuracy ###This is the power for the PSEs
