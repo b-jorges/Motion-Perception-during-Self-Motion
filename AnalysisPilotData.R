@@ -1,6 +1,7 @@
 ###Pull the whole repository and paste the path to the the local GitHub repository here:
 require(dplyr)
 require(lme4)
+require(ggplot2)
 
 Where_Am_I <- function(path=T){
   if (path == T){
@@ -11,30 +12,33 @@ Where_Am_I <- function(path=T){
   }
 }
 
+binomial_smooth <- function(...) {
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)}
+
 setwd(Where_Am_I())
 
-b <- read.table(header=T,"PilotData/PilotLaurence.txt")
-c <- read.table(header=T,"PilotData/PilotBjorn_2D.txt")
-d <- read.table(header=T,"PilotData/PilotBjorn_3D.txt")
-e <- read.table(header=T,"PilotData/PilotMeaghan.txt")
-f <- read.table(header=T,"PilotData/PilotLaurence2.txt")
-g <- read.table(header=T,"PilotData/PilotRachel.txt")
-h <- read.table(header=T,"PilotData/PilotAbi.txt")
-i <- read.table(header=T,"PilotData/PilotJohn.txt")
-j <- read.table(header=T,"PilotData/PilotBob.txt")
+b <- read.table(header=T,"PilotData/Discarded/Pilots02_2D.txt")
+c <- read.table(header=T,"PilotData/Discarded/Pilots01_2D.txt")
+d <- read.table(header=T,"PilotData/Pilots01_3D.txt")
+e <- read.table(header=T,"PilotData/pilots03.txt")
+f <- read.table(header=T,"PilotData/Pilots02_3D.txt")
+g <- read.table(header=T,"PilotData/Discarded/Pilots07.txt")
+h <- read.table(header=T,"PilotData/pilots04.txt")
+i <- read.table(header=T,"PilotData/Pilots06.txt")
+j <- read.table(header=T,"PilotData/Pilots05.txt")
 
 
-b$id = "Laurence"
-c$id = "Bjorn"
-d$id = "Bjorn2"
-e$id = "Meaghan"
+b$id = "s02_2D"
+c$id = "s01_2D"
+d$id = "s01_3D"
+e$id = "s03"
 b$Start_Above = 1
 c$Start_Above = 1
-f$id = "Laurence2"
-g$id = "Rachel"
-h$id = "Abi"
-i$id = "John"
-j$id = "Bob"
+f$id = "s02_3D"
+g$id = "s07"
+h$id = "s04"
+i$id = "s05"
+j$id = "s06"
 
 a = rbind(b,c,d,e,f,g,h,i,j)
 
@@ -76,29 +80,27 @@ Data_GLM = Data_GLM %>%
     )
   )
 
-#####Plot data raw data for all subjects included in analysis
-ggplot(a[a$id %in% c("Meaghan", "Bjorn2", "John", "Abi", "Bob", "Laurence2"),], aes ( x = Difference, y = Pest_Bigger, col = as.factor(Congruent))) +
+#####Plot data raw data for all subjects (tested in 3D)
+ggplot(a[a$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06", "s07"),], 
+       aes ( x = Difference, y = Pest_Bigger, col = as.factor(Congruent))) +
   binomial_smooth() +
   facet_grid(id~velH)
 ggsave("PlotsPilotData.jpg", w=10, h=10)
 
 mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
+             data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
 mod2 = glmer(cbind(Yes, Total - Yes) ~ (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
+             data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
+summary(mod1)
+anova(mod1,mod2)
 
 mod3 = glmer(cbind(Yes, Total - Yes) ~ Congruent*Difference + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
+             data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
 mod4 = glmer(cbind(Yes, Total - Yes) ~ Congruent + Difference + (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
-             data = Data_GLM[Data_GLM$id %in% c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),])
-
-summary(mod1)
-coef(mod1)
-anova(mod1,mod2)
-
+             data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
 summary(mod3)
 anova(mod4,mod3)
