@@ -40,7 +40,7 @@ sim1_within_Dataset <- function(bFix1, levelsFix1, Intercept, sdSubject, sdError
   
   #random effects per condition
   C.re <- sdCondition*rnorm(nParticipants*nTrials*length(levelsFix1), 0, 0.05)
-
+  
   # put it all together
   Response <- Intercept + bFix1*(Fix1==Fix1) +
     S.re[Subject] + eps + C.re
@@ -53,10 +53,10 @@ sim1_within_Dataset <- function(bFix1, levelsFix1, Intercept, sdSubject, sdError
 
 LMM_Analysis_Sim1 = function(mydata) {
   # analyze looking at interaction term with LR test
-fit1 <- lmer(Response ~ Fix1 + (1|Subject), data=mydata, REML = FALSE)
-fit2 <- lmer(Response ~ (1|Subject), data=mydata, REML = FALSE)
-summary(fit1)
-anova(fit2,fit1)$`Pr(>Chisq)`[2]
+  fit1 <- lmer(Response ~ Fix1 + (1|Subject), data=mydata, REML = FALSE)
+  fit2 <- lmer(Response ~ (1|Subject), data=mydata, REML = FALSE)
+  summary(fit1)
+  anova(fit2,fit1)$`Pr(>Chisq)`[2]
 }
 
 LMM_Analysis_Sim1(sim1_within_Dataset(bFix1 = bFix1, levelsFix1 = levelsFix1, Intercept = 0, sdSubject = sdSubject, 
@@ -65,7 +65,7 @@ LMM_Analysis_Sim1(sim1_within_Dataset(bFix1 = bFix1, levelsFix1 = levelsFix1, In
 #####Power analysis for accuracy in motion prediction
 out1 <- replicate(nIterations, {
   sim_within1(bFix1 = bFix1, levelsFix1 = levelsFix1, Intercept = 0, sdSubject = sdSubject, 
-             sdError = sdError, nParticipants = nParticipants, nTrials = nTrials)})
+              sdError = sdError, nParticipants = nParticipants, nTrials = nTrials)})
 hist(out1)
 Power_Timing1 = c(Power_Timing1,mean(out1 < 0.05))
 Power_Timing1
@@ -103,7 +103,7 @@ sim_within2 <- function(bFix1, levelsFix1, Intercept, sdSubject, sdError, nParti
   mydata <- data.frame(Subject = paste('s',Subject, sep=''), 
                        Fix1=Fix1,
                        Response = Response)
-
+  
   mydata = mydata %>%
     group_by(Subject,Fix1) %>%
     mutate(Mean = mean(Response))
@@ -120,7 +120,7 @@ sim_within2 <- function(bFix1, levelsFix1, Intercept, sdSubject, sdError, nParti
 #####Power analysis for precision in motion prediction
 out2 <- replicate(nIterations, {
   sim_within2(bFix1 = bFix1, levelsFix1 = levelsFix1, Intercept = 0, sdSubject = sdSubject, 
-             sdError = sdError, nParticipants = nParticipants, nTrials = nTrials)})
+              sdError = sdError, nParticipants = nParticipants, nTrials = nTrials)})
 hist(out2)
 Power_Timing2 = c(Power_Timing2,mean(out2 < 0.05))
 Power_Timing2
@@ -207,7 +207,7 @@ Psychometric2 = expand.grid(ID=ID, Motion=Motion, velH=velH, rep = rep)
 Psychometric2 = Psychometric2 %>%
   group_by(ID,Motion,velH) %>%
   mutate(EffectOfSelfMotion.Accuracy = velH+Motion/4,
-         )
+  )
 
 ###Estimate Weber fractions and PSEs
 Psychometric = c()
@@ -218,7 +218,7 @@ for (ID_i in ID){
         EffectOfSelfMotion.Accuracy = velH_i+Motion_i/4 ###new PSE in function of self-motion ... gross approximation because it should be lower for lower velH, but whatever
         velH_shown=velH_i*Comparison
         EffectOfSelfMotion.Precision = velH_i*0.15+velH_i*0.1*(Motion_i!=0)
-#        AddedNoise = rnorm(7,0,0.06)
+        #        AddedNoise = rnorm(7,0,0.06)
         
         #draw probability for yes/no from simulated psychometric function
         AnswerProbability = pnorm(velH_shown,EffectOfSelfMotion.Accuracy,EffectOfSelfMotion.Precision) #+AddedNoise 
@@ -302,9 +302,9 @@ DataForPlot = rbind(select(mydata,ID,Condition,Ratio,Simulated),select(Data,ID,C
 DataForPlot = filter(DataForPlot,abs(Ratio-1) < 1) %>%
   mutate(
     SelfMotion = case_when(
-    Condition == "MotionIncongruent+NoMotion" ~ "-2",
-    Condition == "NoMotion+NoMotion" ~ "0",
-    Condition == "MotionCongruent+NoMotion" ~ "2"
+      Condition == "MotionIncongruent+NoMotion" ~ "-2",
+      Condition == "NoMotion+NoMotion" ~ "0",
+      Condition == "MotionCongruent+NoMotion" ~ "2"
     )
   )
 
@@ -315,7 +315,7 @@ ggplot(DataForPlot, aes(x = SelfMotion, y = Ratio, col = Simulated)) +
   geom_violin() +
   facet_wrap(.~ID)
 
- 
+
 
 
 
@@ -451,13 +451,13 @@ plot(lala) +
   ylab("Probability of Pest larger") +
   theme_cowplot(12) +
   
-ggsave("PsychometricFunctionsBjorn.jpg", w = 10, h = 10)
+  ggsave("PsychometricFunctionsBjorn.jpg", w = 10, h = 10)
 
 plot(lala2) +
   xlab("Difference between Velocity(Pest) and Velocity(Target)") +
   ylab("Probability of Pest larger") +
   theme_cowplot(12)
-  
+
 ggsave("PsychometricFunctionsLaurence.jpg", w = 10, h = 10)
 
 plot(lala3) +
@@ -521,7 +521,7 @@ anova(mod4,mod3)
 
 newdfr = expand.grid(Difference = seq(from = -6, to = 2, by = 0.5),
                      Congruent = c("1no motion", "congruent", "incongruent"),
-                     id =  c("Meaghan", "Bjorn2", "Abi", "John", "Bob", "Laurence2"),
+                     id =  c("Meaghan", "Bjorn2", "Abi", "John", "Bob"),
                      velH = c(-8,-6.6,6.6,8))
 
 newdfr$response = predict(mod3,type = "response", newdata = newdfr)
@@ -531,31 +531,52 @@ ggplot(newdfr,aes(x=Difference, y=response, col = Congruent)) +
 
 lala10 = quickpsy(a[a$id %in% c("Meaghan", "Bjorn2", "Laurence2", "John", "Abi", "Bob"),], Difference, Pest_Bigger, grouping = .(id,Congruent,velH))
 PSEsJNDs = data.frame(lala10$par)
+
 PSEsJNDs = PSEsJNDs %>%
   mutate(Congruent2 =
            case_when(
-               Congruent == "incongruent" ~ "1incongruent",
-               Congruent =="congruent" ~ "3congruent",
-               Congruent =="1no motion" ~ "2no motion"
-             )
-          )
+             Congruent == "incongruent" ~ "1incongruent",
+             Congruent =="congruent" ~ "3congruent",
+             Congruent =="1no motion" ~ "2no motion"
+           )
+  ) %>%
+  group_by(id,Congruent2,parn) %>%
+  mutate(ParametersPerIDAndCongruent = mean(par))
 
-QuickPsyCurves = lala10$curves
+Parameters =  PSEsJNDs %>%
+  group_by(id,Congruent2,parn) %>%
+  slice(1)
 
-ggplot(QuickPsyCurves, aes(x, y, color = Congruent)) +
-         geom_line() +
-         coord_cartesian(xlim = c(-5,1)) +
-         facet_grid(id~velH)
-         
-       
-ggplot(PSEsJNDs[PSEsJNDs$parn == "p1",], aes(Congruent2,par, fill = Congruent2)) +
-  geom_bar(stat="identity",color="black") +
-  facet_grid(id~velH) +
+PSEsJNDs_Means = PSEsJNDs %>%
+  group_by(Congruent,parn) %>%
+  mutate(ParametersPerIDAndCongruent = mean(par)) %>%
+  slice(1)
+
+PSEsJNDs_Means$id = "Mean"
+
+Parameters = rbind(Parameters,PSEsJNDs_Means)
+
+ggplot(Parameters[Parameters$parn == "p1",], aes(id,ParametersPerIDAndCongruent, fill = Congruent2)) +
+  geom_bar(stat="identity",color="black",position = "dodge") +
   ylab(label = "PSEs (m/s)") +
   xlab(label = "") +
-  ggtitle(label = "PSE") +
-  scale_x_discrete(labels = c('incongruent','no motion','congruent')) +
-  theme(legend.position = "none")
+  ggtitle(label = "Biases") +
+  scale_x_discrete(labels = c("Mean","s01", "s02", "s03", "s04", "s05", "s06")) +
+  scale_fill_manual(labels = c("Incongruent", "No Motion", "Congruent"),
+                    values = c(BlauUB, Yellow, Red)) +
+  theme(legend.position = "top",
+        legend.title = element_blank())
+
+ggplot(Parameters[Parameters$parn == "p2",], aes(id,ParametersPerIDAndCongruent, fill = Congruent2)) +
+  geom_bar(stat="identity",color="black",position = "dodge") +
+  ylab(label = "SD (m/s)") +
+  xlab(label = "") +
+  ggtitle(label = "Sensitivity") +
+  scale_x_discrete(labels = c("Mean","s01", "s02", "s03", "s04", "s05", "s06")) +
+  scale_fill_manual(labels = c("Incongruent", "No Motion", "Congruent"),
+                    values = c(BlauUB, Yellow, Red)) +
+  theme(legend.position = "top",
+        legend.title = element_blank())
 
 ggplot(PSEsJNDs[PSEsJNDs$parn == "p2",], aes(Congruent2,par, fill = Congruent2)) +
   geom_bar(stat="identity",color="black") +
@@ -566,10 +587,11 @@ ggplot(PSEsJNDs[PSEsJNDs$parn == "p2",], aes(Congruent2,par, fill = Congruent2))
   scale_x_discrete(labels = c('incongruent','no motion','congruent')) +
   theme(legend.position = "none") 
 
+
+
 PSEsJNDsWithLaurence = PSEsJNDs
 
 PSEsJNDs = PSEsJNDs %>%
-  filter(id != "Laurence2") %>%
   group_by(Congruent, parn) %>%
   mutate(mean = mean(par),
          SD = sd(par),
@@ -601,8 +623,6 @@ ggplot(PSEsJNDs[PSEsJNDs$parn == "p2" & PSEsJNDs$velH == 6.6 & PSEsJNDs$id == "M
   theme(legend.position = "none") 
 
 
-timeseries = seq(0,0.5,0.01)
-pnorm(timeseries, mean = 0.25, sd = 0.08)
-dnorm(timeseries, mean = 0.25, sd = 0.08)
-plot(timeseries,pnorm(timeseries, mean = 0.25, sd = 0.08))
-plot(timeseries,dnorm(timeseries, mean = 0.25, sd = 0.08))
+
+
+
