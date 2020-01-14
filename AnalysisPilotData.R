@@ -2,6 +2,7 @@
 require(dplyr)
 require(lme4)
 require(ggplot2)
+require(quickpsy)
 
 Where_Am_I <- function(path=T){
   if (path == T){
