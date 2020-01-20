@@ -1,4 +1,4 @@
-###Pull the whole repository and paste the path to the the local GitHub repository here:
+###Pull the whole repository. The code should work as long as the structure of the repository is not altered.
 require(dplyr)
 require(lme4)
 require(ggplot2)
@@ -60,7 +60,11 @@ a = a %>%
       velH*velH_Subject > 0 ~ "congruent",
       velH*velH_Subject == 0 ~ "1no motion"
     ),
-    Difference_Percent = Difference/velH
+    Difference_Percent = Difference/velH,
+    SelfMotionPresent = case_when(
+      velH_Subject == 0 ~ "no",
+      velH_Subject != 0 ~ "yes"
+    )
   ) %>%
   filter(abs(velH_Pest) < abs(velH)*1.5)
 
@@ -70,7 +74,7 @@ a = a %>%
          Total = length(velH_Subject))
 
 Data_GLM = 
-  select(a,c(id,Congruent,velH,Difference,Yes,Total,velH_Subject)) %>%
+  select(a,c(id,Congruent,velH,Difference,Yes,Total,velH_Subject,SelfMotionPresent)) %>%
   distinct()
 
 Data_GLM = Data_GLM %>%
@@ -88,20 +92,20 @@ ggplot(a[a$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06", "s07"),],
   facet_grid(id~velH)
 ggsave("PlotsPilotData.jpg", w=10, h=10)
 
-mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent + (Difference | id) + (Difference | velH),
+mod1 = glmer(cbind(Yes, Total - Yes) ~ SelfMotionPresent*Difference + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
-mod2 = glmer(cbind(Yes, Total - Yes) ~ (Difference | id)  + (Difference | velH),
+mod2 = glmer(cbind(Yes, Total - Yes) ~ SelfMotionPresent + Difference + (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
-summary(mod1)
 anova(mod1,mod2)
+summary(mod1)
 
-mod3 = glmer(cbind(Yes, Total - Yes) ~ Congruent*Difference + (Difference | id) + (Difference | velH),
+mod3 = glmer(cbind(Yes, Total - Yes) ~ Congruent + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
-mod4 = glmer(cbind(Yes, Total - Yes) ~ Congruent + Difference + (Difference | id)  + (Difference | velH),
+mod4 = glmer(cbind(Yes, Total - Yes) ~ (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
+anova(mod3,mod4)
 summary(mod3)
-anova(mod4,mod3)
