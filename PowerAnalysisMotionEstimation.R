@@ -2,7 +2,7 @@
 require(dplyr)
 require(tidyverse)
 require(lme4)
-library(PearsonDS)
+
 theme_set(theme_cowplot())
 set.seed(912)
 

@@ -3,6 +3,7 @@ require(dplyr)
 require(lme4)
 require(ggplot2)
 require(quickpsy)
+source("Utilities/parabolic.r")
 
 Where_Am_I <- function(path=T){
   if (path == T){
@@ -109,3 +110,30 @@ mod4 = glmer(cbind(Yes, Total - Yes) ~ (Difference | id)  + (Difference | velH),
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
 anova(mod3,mod4)
 summary(mod3)
+
+
+#######################transform physical speeds into observer centric speeds (= radial velocity)
+TimeSeries = seq(0,0.5,0.01)
+vx = c(-8,-6.6,6.6,8)
+ObserverMotion = c(-0.25,0,0.25)
+Conversion = expand.grid(TimeSeries,vx,ObserverMotion)
+colnames(Conversion) = c("TimeSeries", "vx", "ObserverMotion")
+
+Conversion = Conversion %>%
+  mutate(ObserverInSpace = case_when(
+          ObserverMotion == 0 ~ 0,
+          ObserverMotion == 0.25 ~ pnorm(TimeSeries,abs(ObserverMotion),0.08),
+          ObserverMotion == -0.25 ~ -pnorm(TimeSeries,abs(ObserverMotion),0.08)),
+        TargetInSpace = -(- ObserverMotion*4 + vx * 0.5)/2 + vx*TimeSeries,
+        Angle = RadiansToDegree(atan((ObserverInSpace-TargetInSpace)/8)),
+        AngleVelocity = abs((Angle - lag(Angle, n = 1))/0.01)) %>%
+  filter(AngleVelocity < 100 & AngleVelocity > 0 ) %>%
+  mutate(Congruent = case_when(
+          ObserverMotion*vx == 0 ~ "Static",
+          ObserverMotion*vx < 0 ~ "Incongruent",
+          ObserverMotion*vx > 0 ~ "Congruent")
+        )
+  
+  
+ggplot(Conversion, aes(TimeSeries,AngleVelocity,col = Congruent)) +
+  geom_point()
