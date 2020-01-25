@@ -3,7 +3,6 @@ require(dplyr)
 require(lme4)
 require(ggplot2)
 require(quickpsy)
-source("Utilities/parabolic.r")
 
 Where_Am_I <- function(path=T){
   if (path == T){
@@ -18,6 +17,8 @@ binomial_smooth <- function(...) {
   geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)}
 
 setwd(Where_Am_I())
+
+source("Utilities/parabolic.r")
 
 b <- read.table(header=T,"PilotData/Discarded/Pilots02_2D.txt")
 c <- read.table(header=T,"PilotData/Discarded/Pilots01_2D.txt")
@@ -122,18 +123,30 @@ colnames(Conversion) = c("TimeSeries", "vx", "ObserverMotion")
 Conversion = Conversion %>%
   mutate(ObserverInSpace = case_when(
           ObserverMotion == 0 ~ 0,
-          ObserverMotion == 0.25 ~ pnorm(TimeSeries,abs(ObserverMotion),0.08),
-          ObserverMotion == -0.25 ~ -pnorm(TimeSeries,abs(ObserverMotion),0.08)),
+          ObserverMotion == 0.25 ~ -0.5 + pnorm(TimeSeries,abs(ObserverMotion),0.08)*2,
+          ObserverMotion == -0.25 ~ 0.5 -pnorm(TimeSeries,abs(ObserverMotion),0.08)*2),
         TargetInSpace = -(- ObserverMotion*4 + vx * 0.5)/2 + vx*TimeSeries,
+        Distance = ((ObserverInSpace-TargetInSpace)^2 + 8^2)^0.5,
         Angle = RadiansToDegree(atan((ObserverInSpace-TargetInSpace)/8)),
-        AngleVelocity = abs((Angle - lag(Angle, n = 1))/0.01)) %>%
-  filter(AngleVelocity < 100 & AngleVelocity > 0 ) %>%
+        AngleVelocity = abs(Angle - lag(Angle, n = 1))/0.01) %>%
+#  filter(AngleVelocity < 100 & AngleVelocity > 0 ) %>%
   mutate(Congruent = case_when(
           ObserverMotion*vx == 0 ~ "Static",
           ObserverMotion*vx < 0 ~ "Incongruent",
           ObserverMotion*vx > 0 ~ "Congruent")
         )
-  
-  
+
+
+
+ggplot(Conversion, aes(TimeSeries,Distance,col = as.factor(Congruent))) +
+  geom_point(size=3)
+ggsave("lalala.jpg",w=5, h=6)
+
+ggplot(Conversion, aes(TimeSeries,ObserverInSpace,col = as.factor(Congruent))) +
+  geom_point(size=3)
+
+ggplot(Conversion, aes(TimeSeries,TargetInSpace,col = as.factor(Congruent))) +
+  geom_point(size=3)
+
 ggplot(Conversion, aes(TimeSeries,AngleVelocity,col = Congruent)) +
   geom_point()
