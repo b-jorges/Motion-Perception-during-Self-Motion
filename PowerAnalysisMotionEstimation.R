@@ -17,7 +17,7 @@ ggplot(DataFrame3, aes(x)) + ####just to get an idea of what this function looks
   coord_cartesian(xlim=c(0.7,1.3))
 
 ID = paste0("s",1:16)
-Motion = c(-2,0,2) ##motion left, right, and static ... this will be factors that are supposed to represent congruent/incongruent
+Motion = c(-1,0,1) ##motion left, right, and static ... this will be factors that are supposed to represent congruent/incongruent
 velH = c(-8,-6.6, 6.6,8) ##target motion to the left (neg values) and to the right (pos values)
 reps = seq(1,55,1) ##we have two PESTS, and between 20 and 35 reps for each, averages for 55 for both together
 
