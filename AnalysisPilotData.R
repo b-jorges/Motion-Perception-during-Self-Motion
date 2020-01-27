@@ -64,8 +64,8 @@ a = a %>%
     ),
     Difference_Percent = Difference/velH,
     SelfMotionPresent = case_when(
-      velH_Subject == 0 ~ "no",
-      velH_Subject != 0 ~ "yes"
+      velH_Subject == 0 ~ 0,
+      velH_Subject != 0 ~ 1
     )
   ) %>%
   filter(abs(velH_Pest) < abs(velH)*1.5)
@@ -94,10 +94,10 @@ ggplot(a[a$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06", "s07"),],
   facet_grid(id~velH)
 ggsave("PlotsPilotData.jpg", w=10, h=10)
 
-mod1 = glmer(cbind(Yes, Total - Yes) ~ SelfMotionPresent*Difference + (Difference | id) + (Difference | velH),
+mod1 = glmer(cbind(Yes, Total - Yes) ~ as.factor(SelfMotionPresent)*Difference + (Difference | id) + (Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
-mod2 = glmer(cbind(Yes, Total - Yes) ~ SelfMotionPresent + Difference + (Difference | id)  + (Difference | velH),
+mod2 = glmer(cbind(Yes, Total - Yes) ~ Difference + (Difference | id)  + (Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01_3D", "s02_3D", "s03", "s04", "s05", "s06"),])
 anova(mod1,mod2)

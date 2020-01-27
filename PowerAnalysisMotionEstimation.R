@@ -10,11 +10,11 @@ set.seed(912)
 
 #####This is the function from which I choose which comparison values we put into the modelling part: 
 #super high curtosis because we will get many values around the PSE
-DataFrame3 = data.frame(x = rcauchy(1000,1,0.02),
+DataFrame3 = data.frame(x = rcauchy(1000,1,0.05),
                         y = rnorm(1000,1,0.1))
 ggplot(DataFrame3, aes(x)) + ####just to get an idea of what this function looks like 
   geom_density() +
-  coord_cartesian(xlim=c(0.7,1.3))
+  coord_cartesian(xlim=c(0.5,1.5))
 
 ID = paste0("s",1:16)
 Motion = c(-1,0,1) ##motion left, right, and static ... this will be factors that are supposed to represent congruent/incongruent
@@ -26,14 +26,13 @@ SimulatePsychometricFunction = function(ID,Motion,velH, reps,PSE_Diff, JND_Diff)
   
   Psychometric = Psychometric %>%
     group_by(ID) %>%#
-    mutate(PSE_Factor_ID = rnorm(1,1,0.15),
-           SD_Factor_ID = rnorm(1,1,0.15))
+    mutate(PSE_Factor_ID = rnorm(1,1,0.1),
+           SD_Factor_ID = rnorm(1,1,0.1))
  
   Psychometric = Psychometric %>%
-    group_by(ID,Motion,velH) %>%
     mutate(
       EffectOfSelfMotion.Accuracy = (2*velH/3+Motion*PSE_Diff)*abs(PSE_Factor_ID), ###get PSE: +/- 1/8 of selfmotion, aaaand some inter-subject variability (PSE_Factor_ID)
-      velH_pest_factor = rcauchy(length(reps),1,0.02), ###get vector of presented stimulus velocities in accordance with staircase (lots of values around PSE, fewer in the periphery)
+      velH_pest_factor = rcauchy(length(reps),1,0.04), ###get vector of presented stimulus velocities in accordance with staircase (lots of values around PSE, fewer in the periphery)
       velH_shown=EffectOfSelfMotion.Accuracy*velH_pest_factor, ###translates from values around 1 to values around PSE
       ####Get SD for cumulative Gaussian: 0.15*PSE + 0.05*PSE if selfmotion is present, aaaand some inter-subject variability (SD_Factor_ID)
       EffectOfSelfMotion.Precision = (abs(EffectOfSelfMotion.Accuracy*0.1)+abs(EffectOfSelfMotion.Accuracy*JND_Diff*(Motion!=0)))*SD_Factor_ID,
@@ -45,6 +44,7 @@ SimulatePsychometricFunction = function(ID,Motion,velH, reps,PSE_Diff, JND_Diff)
       Answer = as.numeric(rbernoulli(length(AnswerProbability),AnswerProbability))
     )
   
+
   ###prepare for glmer() - needs sum of YES/Total per stimulus strength and condition
   Psychometric = Psychometric %>%
     group_by(ID,Motion,velH,Difference) %>%
@@ -68,29 +68,30 @@ ggplot(Psychometric,aes(Difference,Answer,color=Congruent)) +
   facet_grid(velH~ID) +
   xlab("Ratio Target/Comparison") +
   ylab("Probability Target Bigger") +
-  coord_cartesian(xlim = c(-5,1))
+  coord_cartesian(xlim = c(-5,-1))
 
 
 Analyze_Pychometric_Precision = function(Psychometric){
   Psychometric = 
     select(Psychometric,c(ID,Motion,Yes,Total,Difference,velH)) %>%
     distinct() %>%
+    group_by(ID,Motion,velH) %>%
     filter(abs(Difference) < 5)
   
   Psychometric = Psychometric %>% ###for this test, we can collapse right and leftward motion because we expect the same effect in terms of thresholds for both
     mutate(
       MotionCondition = case_when(
-        Motion == 0 ~ "No",
-        Motion != 0 ~ "Yes"
+        Motion == 0 ~ 0,
+        Motion != 0 ~ 1
       )
     )
   
   ###precision = slope for Difference (the steeper the slope, the more sensitive) ... 
   ###so if there is an interaction between Motion Condition and Difference, that means that it changes the slope
-  mod1 = glmer(cbind(Yes, Total - Yes) ~ as.factor(MotionCondition)*Difference + (1 | ID)  + (1 | velH), 
+  mod1 = glmer(cbind(Yes, Total - Yes) ~ as.factor(MotionCondition)*Difference + (Difference  | ID) + (Difference  | velH), 
                family = binomial(link = "probit"), 
                data = Psychometric)
-  mod2 = glmer(cbind(Yes, Total - Yes) ~ as.factor(MotionCondition) + Difference + (1 | ID)  + (1 | velH),
+  mod2 = glmer(cbind(Yes, Total - Yes) ~ as.factor(MotionCondition) + Difference + (Difference  | ID) + (Difference  | velH),
                family = binomial(link = "probit"), 
                data = Psychometric)
   anova(mod1,mod2)$`Pr(>Chisq)`[2] ##Model 1 beats model 2?
@@ -100,33 +101,42 @@ Analyze_Pychometric_Accuracy = function(Psychometric){
   Psychometric = 
     select(Psychometric,c(ID,Motion,Yes,Total,Difference, velH,Congruent)) %>%
     distinct() %>%
-    filter(abs(Difference) < 5)
+    filter(Difference < -5 & Difference > 1)
   
-  mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent + Difference + (1 | ID)  + (1 | velH),
+  mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent + (Difference  | ID)  + (Difference  | velH),
                family = binomial(link = "probit"), 
                data = Psychometric)
   
-  mod2 = glmer(cbind(Yes, Total - Yes) ~ Difference + (1 | ID) + (1 | velH),
+  mod2 = glmer(cbind(Yes, Total - Yes) ~ (Difference  | ID) + (Difference  | velH),
                family = binomial(link = "probit"), 
                data = Psychometric)
   anova(mod1,mod2)$`Pr(>Chisq)`[2] ##Model 1 beats model 2
-  print(anova(mod1,mod2)$`Pr(>Chisq)`[2])
 }
 
 
 ######power for very low estimates of effect size: difference of 0.1 m/s in PSEs, and JNDs 1/4 higher when self-motion is simulated
-Power_Precision = c()
-nIterations = 500
-out <- replicate(nIterations, {
-  Analyze_Pychometric_Precision(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
-hist(out) ###Distribution of p values
-Power_Precision = mean(out < 0.05) ###Power is the times the difference between the two models is significant
-Power_Precision ###This is the power for the JNDs
+PowerPerN_Precision = c()
+for (i in c(10,12,14,16,18,20)){
+  ID = paste0("s",1:i)
+  Power_Precision = c()
+  nIterations = 500
+  out <- replicate(nIterations, {
+    Analyze_Pychometric_Precision(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
+  hist(out) ###Distribution of p values
+  Power_Precision = mean(out < 0.05) ###Power is the times the difference between the two models is significant
+  PowerPerN_Precision = c(PowerPerN_Precision,Power_Precision) ###This is the power for the JNDs
+  paste0("For ", i, " subjects: ", Power_Precision)
+}
 
-Power_Accuracy = c()
-nIterations = 500
-out2 <- replicate(nIterations, {
-  Analyze_Pychometric_Accuracy(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
-hist(out2) ###Distribution of p values
-Power_Accuracy = mean(out2 < 0.05) ###Power is the times the difference between the two models is significant
-Power_Accuracy ###This is the power for the PSEs
+PowerPerN_Accuracy = c()
+for (i in c(10,12,14,16,18,20)){
+  ID = paste0("s",1:i)
+  Power_Accuracy = c()
+  nIterations = 500
+  out2 <- replicate(nIterations, {
+    Analyze_Pychometric_Accuracy(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
+  hist(out2) ###Distribution of p values
+  Power_Accuracy = mean(out2 < 0.05) ###Power is the times the difference between the two models is significant
+  PowerPerN_Accuracy = c(PowerPerN_Accuracy,Power_Accuracy) ###This is the power for the PSEs
+  paste0("For ", i, " subjects: ", Power_Accuracy)
+}
