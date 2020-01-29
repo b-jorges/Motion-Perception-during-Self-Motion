@@ -12,7 +12,7 @@ set.seed(912)
 #super high curtosis because we will get many values around the PSE
 DataFrame3 = data.frame(x = rcauchy(1000,1,0.05),
                         y = rnorm(1000,1,0.1))
-ggplot(DataFrame3, aes(x)) + ####just to get an idea of what this function looks like 
+ggplot(DataFrame3, aes(y)) + ####just to get an idea of what this function looks like 
   geom_density() +
   coord_cartesian(xlim=c(0.5,1.5))
 
@@ -118,7 +118,7 @@ Analyze_Pychometric_Accuracy = function(Psychometric){
   Psychometric = 
     select(Psychometric,c(ID,Motion,Yes,Total,Difference, velH,Congruent)) %>%
     distinct() %>%
-    filter(Difference < -5 & Difference > 1)
+    filter(Difference > -5 & Difference < 1)
   
   mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent + (Difference  | ID)  + (Difference  | velH),
                family = binomial(link = "probit"), 
@@ -146,7 +146,7 @@ PowerPerN_Precision = c()
 for (i in c(10,12,14,16,18,20)){
   ID = paste0("s",1:i)
   Power_Precision = c()
-  nIterations = 100
+  nIterations = 500
   out <- replicate(nIterations, {
     Analyze_Pychometric_Precision(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
   hist(out) ###Distribution of p values
@@ -159,7 +159,7 @@ PowerPerN_Accuracy = c()
 for (i in c(10,12,14,16,18,20)){
   ID = paste0("s",1:i)
   Power_Accuracy = c()
-  nIterations = 100
+  nIterations = 500
   out2 <- replicate(nIterations, {
     Analyze_Pychometric_Accuracy(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
   hist(out2) ###Distribution of p values
