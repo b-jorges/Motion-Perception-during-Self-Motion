@@ -3,6 +3,8 @@ require(dplyr)
 require(lme4)
 require(ggplot2)
 require(quickpsy)
+require(cowplot)
+theme_set(theme_cowplot())
 
 Where_Am_I <- function(path=T){
   if (path == T){
