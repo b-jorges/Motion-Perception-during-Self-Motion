@@ -1,11 +1,12 @@
 ###Pull the whole repository. The code should work as long as the structure of the repository is not altered.
-require(dplyr)
-require(lme4)
-require(ggplot2)
-require(quickpsy)
-require(cowplot)
-theme_set(theme_cowplot())
+require(dplyr) #package for data structure manipulation
+require(lme4) #package for statistical analysis 
+require(ggplot2) #package for data visualization
+require(quickpsy) #package to fit psychometric functions
+require(cowplot) #design for data visualiation
+theme_set(theme_cowplot()) #sets design parameters for data visualization
 
+####the following function gets the current path of this script 
 Where_Am_I <- function(path=T){
   if (path == T){
     dirname(rstudioapi::getSourceEditorContext()$path)
@@ -14,15 +15,11 @@ Where_Am_I <- function(path=T){
     rstudioapi::getSourceEditorContext()$path
   }
 }
+setwd(Where_Am_I()) #set path of this script as working directory
 
-binomial_smooth <- function(...) {
-  geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)}
+source("Utilities/parabolic.r") #load a bunch of custom functions from the file "parabolic.r" in the folder "Utilities"
 
-setwd(Where_Am_I())
-
-source("Utilities/parabolic.r")
-
-b <- read.table(header=T,"PilotData/Discarded/Pilots02_2D.txt")
+b <- read.table(header=T,"PilotData/Discarded/Pilots02_2D.txt") #this loads a text file into R
 c <- read.table(header=T,"PilotData/Discarded/Pilots01_2D.txt")
 d <- read.table(header=T,"PilotData/Pilots01_3D.txt")
 e <- read.table(header=T,"PilotData/pilots03.txt")
@@ -31,9 +28,9 @@ g <- read.table(header=T,"PilotData/Discarded/Pilots07.txt")
 h <- read.table(header=T,"PilotData/pilots04.txt")
 i <- read.table(header=T,"PilotData/Pilots06.txt")
 j <- read.table(header=T,"PilotData/Pilots05.txt")
+k <- read.table(header=T,"PilotData/Pilots08.txt")
 
-
-b$id = "s02_2D"
+b$id = "s02_2D" #add IDs for each data file we loaded
 c$id = "s01_2D"
 d$id = "s01_3D"
 e$id = "s03"
@@ -44,10 +41,11 @@ g$id = "s07"
 h$id = "s04"
 i$id = "s05"
 j$id = "s06"
+k$id = "s08"
 
-a = rbind(b,c,d,e,f,g,h,i,j)
+a = rbind(b,c,d,e,f,g,h,i,j,k) #combine all data sets into one dataframe
 
-a = a %>%
+a = a %>% ####several transformations necessary for this data analysis
   mutate(
     Pest_Bigger = case_when(
       Response_Interval == Pest_Interval ~ 1,
