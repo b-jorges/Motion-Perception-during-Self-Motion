@@ -93,7 +93,7 @@ Data_GLM = Data_GLM %>%
 
 
 ###use the quickpsy package to fit the psychometric functions. You can see the arguments of the quickpsy function here:
-?quickpsy
+
 FittedPsychometricFunctions_WithOutliers = quickpsy(Data_GLM,Difference,Pest_Bigger, #these are the basic values: name of the dataframe, name of column that indicates the stimulus strength, and name of the column that  contains the responses
                                                     grouping = .(Congruent,id,velH_Factor), #these are the different conditions
                                                     bootstrap = "none")$par

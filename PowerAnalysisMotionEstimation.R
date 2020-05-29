@@ -18,7 +18,7 @@ ggplot(DataFrame3, aes(y)) + ####just to get an idea of what this function looks
 
 ID = paste0("s",1:16)
 Motion = c(-1,0,1) ##motion left, right, and static ... this will be factors that are supposed to represent congruent/incongruent
-velH = c(-8,-6.6, 6.6,8) ##target motion to the left (neg values) and to the right (pos values)
+velH = c(6.6,8) ##target motion to the left (neg values) and to the right (pos values)
 reps = seq(1,55,1) ##we have two PESTS, and between 20 and 35 reps for each, averages for 55 for both together
 
 SimulatePsychometricFunction = function(ID,Motion,velH, reps,PSE_Diff, JND_Diff){
@@ -143,7 +143,7 @@ Analyze_Pychometric_Accuracy = function(Psychometric){
 
 ######power for very low estimates of effect size: difference of 0.1 m/s in PSEs, and JNDs 1/4 higher when self-motion is simulated
 PowerPerN_Precision = c()
-for (i in c(10,12,14,16,18,20)){
+for (i in c(20,22,24,26,28,30)){
   ID = paste0("s",1:i)
   Power_Precision = c()
   nIterations = 500
@@ -156,10 +156,10 @@ for (i in c(10,12,14,16,18,20)){
 }
 
 PowerPerN_Accuracy = c()
-for (i in c(10,12,14,16,18,20)){
+for (i in c(20,22,24,26,28,30)){
   ID = paste0("s",1:i)
   Power_Accuracy = c()
-  nIterations = 500
+  nIterations = 100
   out2 <- replicate(nIterations, {
     Analyze_Pychometric_Accuracy(SimulatePsychometricFunction(ID=ID, Motion=Motion, velH=velH, reps=reps, PSE_Diff = 1/8, JND_Diff = 0.025))})
   hist(out2) ###Distribution of p values
