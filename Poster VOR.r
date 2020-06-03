@@ -204,11 +204,11 @@ ggplot(Parameters_SD %>% filter(id != "Mean"),aes(SelfMotionPresent,par, color =
                      values = c(Red,BlauUB,LightBlauUB)) +
   scale_x_discrete(labels= c("No Self-Motion", "Self-Motion")) +
   theme(legend.position = "") +
-  geom_hline(yintercept = 0.935, linetype = 2) +
+  geom_hline(yintercept = 0.935, linetype = 3, size = 1) +
   ggtitle("Precision") +
   geom_segment(aes(x = 1, y = 4, xend = 2, yend = 4), size = 1, color = "black") +
   annotate("text",x = 1.5,y = 4.2, label = "n.s.")
-ggsave("Poster VOR/SDs Poster VOR.jpg",w=4,h=4)
+ggsave("Poster VSS/SDs Poster VSS.jpg",w=5,h=5)
 
 ggplot(Parameters_Mean %>% filter(id != "Mean"),aes(Congruent,par, color = Congruent, shape = as.factor(velH))) +
   geom_point(alpha = 0.2, size = 3) +
@@ -221,7 +221,7 @@ ggplot(Parameters_Mean %>% filter(id != "Mean"),aes(Congruent,par, color = Congr
   theme(legend.position = "") +
   geom_hline(yintercept = (Parameters_Mean %>% 
                              filter(id == "Mean" & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$par, linetype = 2) +
+                             group_by(Congruent))$par, linetype = 3, size = 1) +
   ggtitle("Accuracy") +
   geom_segment(aes(x = 1, y = 3.9, xend = 2, yend = 3.9), size = 1, color = "black") +
   geom_segment(aes(x = 1, y = 4.4, xend = 3, yend = 4.4), size = 1, color = "black") +
@@ -250,7 +250,7 @@ ggplot(Parameters_Mean %>% filter(id != "Mean"),aes(Congruent,par, color = Congr
   geom_segment(aes(x = 1, y = 4.4, xend = 3, yend = 4.4), size = 1, color = "black") +
   annotate("text",x = 1.5,y = 4.2, label = "n.s.") +
   annotate("text",x = 2,y = 4.6, label = "*")
-ggsave("Poster VOR/PSEs Poster VOR.jpg",w=5,h=5)
+ggsave("Poster VSS/PSEs Poster VSS.jpg",w=5,h=5)
 
 
 
@@ -303,13 +303,14 @@ ggplot(Predictions, aes(Difference,Response,color = Motion)) +
   scale_color_manual(name = "",
                      values = c(Red,BlauUB,LightBlauUB),
                      labels = c("No Motion","Same\nDirection","Opposite\nDirection")) +
-  xlab("Difference between Comp. and Test (m/s)") +
+  xlab("Difference between Comparison and Test (m/s)") +
   ylab("Probability Test Faster") + 
-  theme(legend.position = "") +
-  ggtitle("Incomplete Compensation, Precision Cost") +
+  theme(legend.position = "",
+        axis.title.x = element_text(size = rel(0.9))) +
+  ggtitle("Predicted Psychometric Functions") +
   geom_hline(yintercept = 0.5, linetype = 2, color = "grey") +
   geom_vline(xintercept = 0, linetype = 2, color = "grey") +
   annotate("text", x = 2.2, y = 0.6, label = "No Motion\n(steeper slope,\nnot shifted)", color = Red, size = 6) +
   annotate("text", x = 1.3, y = 0.2, label = "Opposite Directions\n(shifted right)", color = LightBlauUB, size = 6) +
   annotate("text", x = -1, y = 0.8, label = "Same Direction\n(shifted left)", color = BlauUB, size = 6)
-ggsave("Poster VOR/Predictions. VOR.jpg",w=5,h=7)
+ggsave("Poster VSS/Predictions VOR.jpg",w=5,h=7)
