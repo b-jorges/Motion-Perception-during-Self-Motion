@@ -179,35 +179,39 @@ Parameters_Mean = rbind(FittedPsychometricFunctions_WithoutOutliers$par %>%
                    )
 
 Parameters_SD = rbind(FittedPsychometricFunctions_WithoutOutliers$par %>%
-                        mutate(SelfMotionPresent = case_when(
-                          Congruent == "1no motion"  ~ "No Selfmotion",
-                          TRUE ~ "Selfmotion")) %>%
+#                        mutate(SelfMotionPresent = case_when(
+#                          Congruent == "1no motion"  ~ "No Selfmotion",
+#                          TRUE ~ "Selfmotion")) %>%
                         filter(parn == "p2"),
                       FittedPsychometricFunctions_WithoutOutliers$par %>%
-                          mutate(SelfMotionPresent = case_when(
-                            Congruent == "1no motion"  ~ "No Selfmotion",
-                            TRUE ~ "Selfmotion")) %>%
-                          group_by(SelfMotionPresent,parn) %>%
+#                         mutate(SelfMotionPresent = case_when(
+#                            Congruent == "1no motion"  ~ "No Selfmotion",
+#                            TRUE ~ "Selfmotion")) %>%
+                          group_by(Congruent,parn) %>%
                           filter(parn == "p2") %>%
                           mutate(par = median(par),
                                  id = "Mean") %>%
                           slice(1)
 )
 
-ggplot(Parameters_SD %>% filter(id != "Mean"),aes(SelfMotionPresent,par, color = SelfMotionPresent, shape = as.factor(velH))) +
+ggplot(Parameters_SD %>% filter(id != "Mean"),aes(Congruent,par, color = Congruent, shape = as.factor(velH))) +
   geom_point(alpha = 0.2, size = 3) +
-  geom_point(data = Parameters_SD %>% filter(id == "Mean"), aes(SelfMotionPresent,par), size = 8) +
+  geom_point(data = Parameters_SD %>% filter(id == "Mean"), aes(Congruent,par), size = 8) +
   xlab("") +
   ylab("SD (m/s)") +
   coord_cartesian(ylim = c(0,4.2)) +
   scale_color_manual(name = "",
                      values = c(Red,BlauUB,LightBlauUB)) +
-  scale_x_discrete(labels= c("No Self-Motion", "Self-Motion")) +
+  scale_x_discrete(labels= c("No Motion", "Same\nDirection", "Opposite\nDirections")) +
   theme(legend.position = "") +
-  geom_hline(yintercept = 0.935, linetype = 3, size = 1) +
+  geom_hline(yintercept = (Parameters_SD %>% 
+                             filter(id == "Mean" & Congruent == "1no motion") %>% 
+                             group_by(Congruent))$par, linetype = 3, size = 1) +
   ggtitle("Precision") +
-  geom_segment(aes(x = 1, y = 4, xend = 2, yend = 4), size = 1, color = "black") +
-  annotate("text",x = 1.5,y = 4.2, label = "n.s.")
+  geom_segment(aes(x = 1, y = 3.7, xend = 2, yend = 3.7), size = 1, color = "black") +
+  annotate("text",x = 1.5,y = 3.85, label = "n.s.") +
+  geom_segment(aes(x = 1, y = 4.1, xend = 3, yend = 4.1), size = 1, color = "black") +
+  annotate("text",x = 2,y = 4.25, label = "n.s.")
 ggsave("Poster VSS/SDs Poster VSS.jpg",w=5,h=5)
 
 ggplot(Parameters_Mean %>% filter(id != "Mean"),aes(Congruent,par, color = Congruent, shape = as.factor(velH))) +
@@ -255,13 +259,13 @@ ggsave("Poster VSS/PSEs Poster VSS.jpg",w=5,h=5)
 
 
 ##########Statistical analysis
-mod1 = glmer(cbind(Yes, Total - Yes) ~ SelfMotionPresent*Difference + 
+mod1 = glmer(cbind(Yes, Total - Yes) ~ Congruent*Difference + 
                (Congruent + Difference | id) + (Congruent + Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01", "s02", "s03", "s04", "s05", "s06", "s08"),],
              glmerControl(optimizer = "bobyqa"),
              nAGQ = 0)
-mod2 = glmer(cbind(Yes, Total - Yes) ~ SelfMotionPresent + Difference + 
+mod2 = glmer(cbind(Yes, Total - Yes) ~ Congruent + Difference + 
                (Congruent + Difference | id) + (Congruent + Difference | velH),
              family = binomial(link = "probit"), 
              data = Data_GLM[Data_GLM$id %in% c("s01", "s02", "s03", "s04", "s05", "s06", "s08"),],
