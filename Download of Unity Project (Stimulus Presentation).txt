@@ -1,3 +1,5 @@
 You can download the program we use to present stimuli on Open Science Foundation:
 
+You will find both the version at first submission (v1) and the version at acceptance of the stage 1 Registered Report.
+
 https://osf.io/u7yhb/
