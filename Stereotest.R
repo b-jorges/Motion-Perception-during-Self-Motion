@@ -1,3 +1,11 @@
+#see also https://github.com/b-jorges/Motion-Perception-during-Self-Motion/blob/master/Writeups/Stereotest.docx
+
+
+#15m distance to target
+#0.065m interocular distance assumed
+#offets between 0.05 and 0m shown
+
+
 VisualAngle_NoOffset = RadiansToDegree(DegreeToRadians(90)- atan(15/(2+0.065/2)) - atan((2-0.065/2)/15))
 
 Offsets = seq(0.05,0.00,-0.0025)
