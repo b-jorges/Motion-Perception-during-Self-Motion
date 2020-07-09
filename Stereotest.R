@@ -8,7 +8,7 @@
 
 VisualAngle_NoOffset = RadiansToDegree(DegreeToRadians(90)- atan(15/(2+0.065/2)) - atan((2-0.065/2)/15))
 
-Offsets = seq(0.05,0.00,-0.0025)
+Offsets = seq(0.025,0.00,-0.00125)
 Stereo_Differences = c()
 
 for (Offset in Offsets){
@@ -20,7 +20,10 @@ for (Offset in Offsets){
 }
 
 Stereo_Differences_ArcSec = Stereo_Differences*3600
+Ratio = round(Offsets[1:20]/Stereo_Differences_ArcSec[1:20],5)
 
+Stereo_Differences_ArcSec = Offsets/0.00007
+Offsets = 0.00007*Stereo_Differences_ArcSec
 
 VisualAngle_Offset = RadiansToDegree(DegreeToRadians(180) - atan((2-0.065/2-0.05/2)/15) - DegreeToRadians(90) - atan(15/(2+0.065/2+0.05)))
 
