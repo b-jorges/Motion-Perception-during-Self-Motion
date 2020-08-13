@@ -7,10 +7,15 @@ VisualAngle_NoOffset = RadiansToDegree(DegreeToRadians(90)- atan(15/(2+0.065/2))
 Offsets = seq(0.025,0.00,-0.00125) #range of offsets
 Stereo_Differences = c()
 
+distance = 2
+DistanceMiddleToSquare = 
+Offset = 
+
+
 for (Offset in Offsets){
   
   #see equations in PDF; this compute the visual angle ("gamma") when there is an offset
-  VisualAngle_Offset = DegreeToRadians(180) - atan((2-0.065/2-Offset/2)/15) - DegreeToRadians(90) - atan(15/(2+0.065/2+Offset/2))
+  VisualAngle_Offset = DegreeToRadians(180) - atan((2-0.065/2-Offset/2)/distance) - DegreeToRadians(90) - atan(distance/(2+0.065/2+Offset/2))
   
   Stereo_Differences = c(Stereo_Differences,RadiansToDegree(VisualAngle_Offset) - VisualAngle_NoOffset)
   
