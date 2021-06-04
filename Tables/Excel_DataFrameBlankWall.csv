@@ -1,0 +1,7 @@
+"","RegressionCoefficient","SE","CI_Lower","CI_Higher","Signifant"
+"(Intercept)",-2.77,0.26,-3.33,-2.17,"*"
+"Congruentcongruent",0.06,0.15,-0.33,0.37,"n.s."
+"Congruentincongruent",0.32,0.15,-0.04,0.64,"n.s."
+"velH_Pest",0.59,0.05,0.48,0.69,"*"
+"Congruentcongruent:velH_Pest",-0.01,0.03,-0.06,0.05,"n.s."
+"Congruentincongruent:velH_Pest",-0.08,0.02,-0.14,-0.02,"*"
