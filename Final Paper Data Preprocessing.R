@@ -6,7 +6,6 @@ require(quickpsy) #package to fit psychometric functions
 require(cowplot) #design for data visualization
 require(tidyverse)
 theme_set(theme_cowplot()) #sets design parameters for data visualization
-source("Utilities/parabolic.r") #load a bunch of custom functions from the file "parabolic.r" in the folder "Utilities"
 
 ###velH_Subject -1/1 = participant moves, wall is textured; desired response 1, acceptable [0.6;1]
 ###velH_Subject 0.5/-0.5 = wall moves; desired response -1, acceptable [-0.6;-1]

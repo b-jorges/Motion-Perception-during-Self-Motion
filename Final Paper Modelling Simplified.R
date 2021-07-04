@@ -2,23 +2,16 @@
 require(dplyr) #package for data structure manipulation
 require(lme4) #package for statistical analysis 
 require(ggplot2) #package for data visualization
-require(quickpsy) #package to fit psychometric functions
 require(cowplot) #design for data visualiation
 require(tidyverse)
 setwd(dirname(rstudioapi::getSourceEditorContext()$path)) #set path of this script as working directory
 theme_set(theme_cowplot()) #sets design parameters for data visualization
-source("Utilities/parabolic.r") #load a bunch of custom functions from the file "parabolic.r" in the folder "Utilities"
 source("Final Paper Data Preprocessing.r")
 
-###velH_Subject -1/1 = participant moves, wall is textured; desired response 1, acceptable [0.6;1]
-###velH_Subject 0.5/-0.5 = wall moves; desired response -1, acceptable [-0.6;-1]
-###velH_Subject 0.25/-0.25 = participant moves, but wall is blank; desired response 1, acceptable [0.6;1]
 
-####the following function gets the current path of this script 
-
-#Effects on PSE:
-#self-motion
-#induced motion
+###################################
+######PSE Model
+###################################
 
 Parameters = Parameters %>% 
   mutate(Static = case_when(
@@ -86,6 +79,7 @@ Parameters = Parameters %>%
 
 
 #Fit PSEs based on the effect of self-motion and induced motion (two parameters)
+#See Equation 8 in paper
 FitPSEs = function(x,Mean,Baseline_PSE,ConditionSelfmotion,ConditionInducedMotion,SelfmotionPresent,InducedMotionPresent){
   SelfmotionEffect = x[1]
   InducedMotionEffect = x[2]
@@ -94,19 +88,12 @@ FitPSEs = function(x,Mean,Baseline_PSE,ConditionSelfmotion,ConditionInducedMotio
       ConditionInducedMotion*InducedMotionEffect*InducedMotionPresent))^2))^0.5
 }
 
+
+
 InitialParameters_PSE = c(0,0)
 
-optim(InitialParameters_PSE,
-      FitPSEs,
-      Mean = Parameters$Mean,
-      Baseline = Parameters$Baseline_PSE,
-      ConditionInducedMotion = Parameters$ConditionInducedMotion,
-      ConditionSelfmotion = Parameters$ConditionSelfmotion,
-      SelfmotionPresent = Parameters$SelfmotionPresent,
-      InducedMotionPresent = Parameters$InducedMotionPresent)
-
-
-
+#fit the model for each participant seperately and output the effect of self-motion, 
+#the effeect of induced motion, the Root Mean Squared Error and the predictions (to be compared against actual performance)
 Model_PSE = Parameters %>%
   group_by(Participant) %>%
   mutate(SelfmotionEffect = optim(InitialParameters_PSE,
@@ -139,6 +126,9 @@ Model_PSE = Parameters %>%
   group_by(Participant,Congruent,Condition,velH) %>% 
   slice(1)
 
+###############
+#####Figure 5
+###############
 ModelFitPSEs = ggplot(Model_PSE %>% filter(Congruent != "1no motion"),aes(Predictions_PSE,Mean,color = Condition)) +
   geom_point() +
   coord_cartesian(xlim = c(1.5,9), ylim = c(1.5,9)) +
@@ -170,8 +160,9 @@ InducedMotionPSEs = ggplot(Model_PSE,aes(InducedMotionEffect)) +
 RightPart_PSEs = plot_grid(SelfmotionPSEs,InducedMotionPSEs,ncol = 1)
 
 plot_grid(ModelFitPSEs,RightPart_PSEs)
-ggsave("Figures/Model_PSEs.jpg", w = 10, h = 8)
+ggsave("Figures/(Figure 5) Model_PSEs.jpg", w = 10, h = 8)
 
+#get some summary statistics on RMSE, effect of self-motion and effect of induced motion
 round(mean(Model_PSE$RMSE_PSE),2)
 round(median(Model_PSE$RMSE_PSE),2)
 
@@ -183,17 +174,9 @@ round(median(Model_PSE$InducedMotionEffect),2)
 
 
 
-
-
-
-
-
-
-#Effects on JND:
-#weber fractions! % of angular velocity
-#self-motion
-#not induced motion
-
+##########################
+######JND Model
+##########################
 Parameters = Parameters %>% 
   #values from the r script "Distance between Observer and Target"
   mutate(AngularVelocity = case_when(
@@ -208,7 +191,7 @@ Parameters = Parameters %>%
     Congruent == "1no motion" & velH == 6.6 ~ 46.6,
     Congruent == "1no motion" & velH == 8 ~ 56.2))
 
-####get Predictions
+####model, see Equation 9
 FitJNDs = function(x,SD,Baseline_JND,AngularVelocity,SelfmotionPresent){
   SelfmotionEffect = x[1]
   WF = x[2]
@@ -218,14 +201,8 @@ FitJNDs = function(x,SD,Baseline_JND,AngularVelocity,SelfmotionPresent){
   }
 
 
-optim(c(0,0),
-      FitJNDs,
-      Baseline_JND = Parameters$Baseline_JND, 
-      AngularVelocity = Parameters$AngularVelocity,
-      SelfmotionPresent = Parameters$SelfmotionPresent,
-      SD = Parameters$SD)
-
-
+#fit the model for each participant seperately and output the effect of self-motion, 
+#effects relative to Weber Fractions, the Root Mean Squared Error and the predictions (to be compared against actual performance)
 Model_JND = Parameters %>%
   group_by(Participant) %>%
   mutate(SelfmotionEffect = optim(c(0,0),
@@ -252,6 +229,11 @@ Model_JND = Parameters %>%
   group_by(Participant,Congruent,Condition,velH) %>% 
   slice(1)
 
+
+
+###############
+#####Figure 6
+###############
 ModelFitJNDs = ggplot(Model_JND %>% filter(Congruent != "1no motion"),aes(Predictions_JND,SD,color = Condition)) +
   geom_point() +
   annotate("segment",x = 0, xend = 9, y = 0, yend = 9, linetype = 2) +
@@ -283,7 +265,7 @@ WF_JNDs = ggplot(Model_JND,aes(WF)) +
 RightPart_JNDs = plot_grid(SelfmotionJNDs,WF_JNDs,ncol = 1)
 
 plot_grid(ModelFitJNDs,RightPart_JNDs)
-ggsave("Figures/Model_JNDs.jpg", w = 10, h = 8)
+ggsave("Figures/(Figure 6) Model_JNDs.jpg", w = 10, h = 8)
 
 round(mean(Model_JND$RMSE_JND),2)
 round(median(Model_JND$RMSE_JND),2)
@@ -296,10 +278,7 @@ round(median(Model_JND$WF),4)
 
 
 
-
-
 ###model overall ... correlation between compensation and selfmotion  on JNDs
 Model_JND$Compensation = 1-Model_PSE$SelfmotionEffect
-Model_JND$WallMaterial
 cor.test((Model_JND %>% filter(Condition %in% c("RegularCondition", "BlankWall")) %>%  group_by(Participant,WallMaterial) %>% slice(1))$Compensation,
          (Model_JND %>% filter(Condition %in% c("RegularCondition", "BlankWall")) %>% group_by(Participant,WallMaterial) %>% slice(1))$SelfmotionEffect)

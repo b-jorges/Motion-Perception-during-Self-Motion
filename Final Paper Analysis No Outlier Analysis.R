@@ -1,13 +1,7 @@
 ###Pull the whole repository. The code should work as long as the structure of the repository is not altered.
 require(dplyr) #package for data structure manipulation
-require(lme4) #package for statistical analysis 
-require(ggplot2) #package for data visualization
-require(quickpsy) #package to fit psychometric functions
-require(cowplot) #design for data visualiation
-require(tidyverse)
-theme_set(theme_cowplot()) #sets design parameters for data visualization
+require(lme4) #package for statistical analysis
 setwd(dirname(rstudioapi::getSourceEditorContext()$path)) #set path of this script as working directory
-source("Utilities/parabolic.r") #load a bunch of custom functions from the file "parabolic.r" in the folder "Utilities"
 source("Final Paper Data Preprocessing No Outlier Analysis.r")
 
 

@@ -1,261 +1,202 @@
 ###Pull the whole repository. The code should work as long as the structure of the repository is not altered.
 require(dplyr) #package for data structure manipulation
-require(lme4) #package for statistical analysis 
 require(ggplot2) #package for data visualization
-require(quickpsy) #package to fit psychometric functions
-require(cowplot) #design for data visualiation
+require(cowplot) #design for data visualization
 require(tidyverse)
 theme_set(theme_cowplot()) #sets design parameters for data visualization
 setwd(dirname(rstudioapi::getSourceEditorContext()$path)) #set path of this script as working directory
-source("Utilities/parabolic.r") #load a bunch of custom functions from the file "parabolic.r" in the folder "Utilities"
 source("Final Paper Data Preprocessing.r")
 source("Final Paper Analysis.r")
 
-####the following function gets the current path of this script 
-setwd(dirname(rstudioapi::getSourceEditorContext()$path)) #set path of this script as working directory
 
-###################plots Laurence
-Laurence1 = ggplot(Parameters %>% filter(Condition %in% c("RegularCondition", "RegularWallStatic")), aes(Congruent,Mean_Minus_velH,color = Congruent)) +
+Parameters_Regular = Parameters %>%
+  filter(Condition %in% c("RegularCondition", "RegularWallStatic")) %>% 
+  group_by(velH,Participant) %>%
+  filter(length(Mean) == 3) %>% 
+  arrange(Participant,velH,Condition) %>%
+  mutate(Baseline_PSE = Mean[Congruent == "1no motion"],
+         Baseline_SD = SD[Congruent == "1no motion"],
+         DifferenceToBaseline_PSE = Mean-Baseline_PSE,
+         DifferenceToBaseline_SD = SD-Baseline_SD) %>% 
+  group_by(Congruent) %>% 
+  mutate(Mean_DifferenceToBaseline_PSE = mean(DifferenceToBaseline_PSE[Congruent != "1no motion"]),
+         Mean_DifferenceToBaseline_SD = mean(DifferenceToBaseline_SD[Congruent != "1no motion"]))
+
+###################Figure 3
+Panel1 = ggplot(Parameters_Regular %>% filter(Congruent != "1no motion"), aes(Congruent,DifferenceToBaseline_PSE,color = Congruent)) +
   geom_point(alpha = 0.5, size = 3) +
-  geom_point(aes(Congruent,Mean_Mean_Minus_velH), size = 8) +
-  scale_x_discrete(labels = c("Static","Same Direction", "Opposite Directions")) +
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_PSE), size = 8) +
+  scale_x_discrete(labels = c("Same Direction", "Opposite Directions")) +
   theme(legend.position = "") +
-  ggtitle("Accuracy - Full Stimulus") +
-  ylab("PSE (m/s)") +
+  ggtitle("Accuracy - Main Condition") +
+  ylab("PSE Difference from Static (m/s)") +
   theme(axis.title.x=element_blank()) +
-  scale_color_manual(values = c(Red,BlauUB, "lightblue")) +
-  geom_point(aes(Congruent,Mean_Mean_Minus_velH), size = 4) +
-#  coord_cartesian(ylim = c(-6.5,2)) +
-  annotate("text", x = 1.5, y = 1, label = paste0("95% CI = [",
+  scale_color_manual(values = c(BlauUB, "lightblue")) +
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_PSE), size = 4) +
+  annotate("text", x = 1, y = 2.5, label = paste0("95% CI = [",
                                                   round(ConfidenceIntervals_Regular["Congruentcongruent",1],2),
                                                   ";",
                                                   round(ConfidenceIntervals_Regular["Congruentcongruent",2],2),
                                                   "]")) +
-  # annotate("text", x = 1.5, y = 1, label = if(summary(mod1_Regular)$coef[20] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_Regular)$coef[20],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 2, y = 0.5, yend = 0.5) +
-  annotate("text", x = 2, y = 2, label = paste0("95% CI = [",
+  annotate("text", x = 2, y = 2.5, label = paste0("95% CI = [",
                                                   round(ConfidenceIntervals_Regular["Congruentincongruent",1],2),
                                                   ";",
                                                   round(ConfidenceIntervals_Regular["Congruentincongruent",2],2),
                                                   "]")) +
-  # annotate("text", x = 2, y = 2, label = if(summary(mod1_Regular)$coef[21] >= 0.001){paste0("p = ",
-  #                                           round(summary(mod1_Regular)$coef[21],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 3, y = 1.5, yend = 1.5) +
-  geom_hline(yintercept = mean((Parameters %>% filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion"))$Mean_Minus_velH),
+  geom_hline(yintercept = 0,
              linetype = 3) +
-  geom_segment(aes(x = 1.5, 
-                   y = (Parameters %>% 
-                          filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                          group_by(Congruent))$Mean_Mean_Minus_velH[1] - 1, 
-                   xend = 2.5, 
-                   yend = (Parameters %>% 
-                             filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$Mean_Mean_Minus_velH[1] - 1),
-               size = 1,
-               color = "black",
-               linetype = 5) +
-  geom_segment(aes(x = 2.5, 
-                   y = (Parameters %>% 
-                          filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                          group_by(Congruent))$Mean_Mean_Minus_velH[1] + 1, 
-                   xend = 3.5, 
-                   yend = (Parameters %>% 
-                             filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$Mean_Mean_Minus_velH[1] + 1),
-               size = 1,
-               color = "black",
-               linetype = 5)
+  annotate("segment",x = 0.6, xend = 1.4, y = -1, yend = -1, linetype = 2, size = 2) +
+  annotate("segment",x = 1.6, xend = 2.4, y = 1, yend = 1, linetype = 2, size = 2)
 
-Laurence2 = ggplot(Parameters %>% filter(Condition %in% c("RegularCondition", "RegularWallStatic")), aes(Congruent,SD,color = Congruent)) +
+Panel2 = ggplot(Parameters_Regular %>% filter(Congruent != "1no motion"), aes(Congruent,DifferenceToBaseline_SD,color = Congruent)) +
   geom_point(alpha = 0.5, size = 3) +
-  scale_x_discrete(labels = c("Static","Same Direction", "Opposite Directions")) +
+  scale_x_discrete(labels = c("Same Direction", "Opposite Directions")) +
   theme(legend.position = "") +
   ylab("SD Difference from Static (m/s)") +
-  ggtitle("Precision - Full Stimulus") +
+  ggtitle("Precision - Main Condition") +
   theme(axis.title.x=element_blank()) +
-#  coord_cartesian(ylim = c(0,5.5)) +
-  scale_color_manual(values = c(Red,BlauUB, "lightblue")) +
-  geom_point(aes(Congruent,Mean_SD), size = 8) +
-  annotate("text", x = 1.5, y = 7.5, label = paste0("95% CI = [",
+  scale_color_manual(values = c(BlauUB, "lightblue")) +
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_SD), size = 8) +
+  annotate("text", x = 1, y = 5.5, label = paste0("95% CI = [",
                                                   round(ConfidenceIntervals_Regular["Congruentcongruent:velH_Pest",1],2),
                                                   ";",
                                                   round(ConfidenceIntervals_Regular["Congruentcongruent:velH_Pest",2],2),
                                                   "]")) +
-  # annotate("text", x = 1.5, y = 4, label = if(summary(mod1_Regular)$coef[23] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_Regular)$coef[23],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 2, y = 7, yend = 7) +
-  annotate("text", x = 2, y = 9, label = paste0("95% CI = [",
+  annotate("text", x = 2, y = 5.5, label = paste0("95% CI = [",
                                                 round(ConfidenceIntervals_Regular["Congruentincongruent:velH_Pest",1],2),
                                                 ";",
                                                 round(ConfidenceIntervals_Regular["Congruentincongruent:velH_Pest",2],2),
                                                 "]")) +
-  # annotate("text", x = 2, y = 5, label = if(summary(mod1_Regular)$coef[24] >= 0.001){paste0("p = ",
-  #                                           round(summary(mod1_Regular)$coef[24],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 3, y = 8.5, yend = 8.5) +
-  geom_hline(yintercept = mean((Parameters %>% filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion"))$SD),
+  geom_hline(yintercept = 0,
              linetype = 3)
 
-Laurence3 = ggplot(Parameters %>% filter(Condition %in% c("BlankWall", "BlankWallStatic")), aes(Congruent,Mean_Minus_velH,color = Congruent)) +
+
+Parameters_Blank = Parameters %>%
+  filter(Condition %in% c("BlankWall", "BlankWallStatic")) %>% 
+  group_by(velH,Participant) %>%
+  filter(length(Mean) == 3) %>% 
+  arrange(Participant,velH,Condition) %>%
+  mutate(Baseline_PSE = Mean[Congruent == "1no motion"],
+         Baseline_SD = SD[Congruent == "1no motion"],
+         DifferenceToBaseline_PSE = Mean-Baseline_PSE,
+         DifferenceToBaseline_SD = SD-Baseline_SD) %>% 
+  group_by(Congruent) %>% 
+  mutate(Mean_DifferenceToBaseline_PSE = mean(DifferenceToBaseline_PSE[Congruent != "1no motion"]),
+         Mean_DifferenceToBaseline_SD = mean(DifferenceToBaseline_SD[Congruent != "1no motion"]))
+
+###################Figure 4
+Panel3 = ggplot(Parameters_Blank %>% filter(Congruent != "1no motion"), aes(Congruent,DifferenceToBaseline_PSE,color = Congruent)) +
   geom_point(alpha = 0.5, size = 3) +
-  scale_x_discrete(labels = c("Static","Same Direction", "Opposite Directions")) +
+  scale_x_discrete(labels = c("Same Direction", "Opposite Directions")) +
   theme(legend.position = "") +
   ggtitle("Accuracy - Blank Wall") +
-  ylab("PSE (m/s)") +
+  ylab("PSE Difference from Static (m/s)") +
   theme(axis.title.x=element_blank()) +
-  geom_point(aes(Congruent,Mean_Mean_Minus_velH), size = 8) +
-#  coord_cartesian(ylim = c(-6.5,2)) +
-  scale_color_manual(values = c(Red,BlauUB, "lightblue")) +
-  annotate("text", x = 1.5, y = 1, label = paste0("95% CI = [",
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_PSE), size = 8) +
+  scale_color_manual(values = c(BlauUB, "lightblue")) +
+  annotate("text", x = 1, y = 2, label = paste0("95% CI = [",
                                                   round(ConfidenceIntervals_Blankwall["Congruentcongruent",1],2),
                                                   ";",
                                                   round(ConfidenceIntervals_Blankwall["Congruentcongruent",2],2),
                                                   "]")) +
-  # annotate("text", x = 1.5, y = 1, label = if(summary(mod1_BlankWall)$coef[20] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_BlankWall)$coef[20],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 2, y = 0.5, yend = 0.5) +
   annotate("text", x = 2, y = 2, label = paste0("95% CI = [",
                                                   round(ConfidenceIntervals_Blankwall["Congruentincongruent",1],2),
                                                   ";",
                                                   round(ConfidenceIntervals_Blankwall["Congruentincongruent",2],2),
                                                   "]")) +
-  # annotate("text", x = 2, y = 2, label = if(summary(mod1_BlankWall)$coef[21] >= 0.001){paste0("p = ",
-  #                                           round(summary(mod1_BlankWall)$coef[20],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 3, y = 1.5, yend = 1.5) +
-  geom_hline(yintercept = mean((Parameters %>% filter(Condition %in% c("BlankWall", "BlankWallStatic") & Congruent == "1no motion"))$Mean_Minus_velH),
+  geom_hline(yintercept = 0,
              linetype = 3) +
-  geom_segment(aes(x = 1.5, 
-                   y = (Parameters %>% 
-                          filter(Condition %in% c("BlankWall", "BlankWallStatic") & Congruent == "1no motion") %>% 
-                          group_by(Congruent))$Mean_Mean_Minus_velH[1] - 1, 
-                   xend = 2.5, 
-                   yend = (Parameters %>% 
-                             filter(Condition %in% c("BlankWall", "BlankWallStatic") & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$Mean_Mean_Minus_velH[1] - 1),
-               size = 1,
-               color = "black",
-               linetype = 5) +
-  geom_segment(aes(x = 2.5, 
-                   y = (Parameters %>% 
-                          filter(Condition %in% c("BlankWall", "BlankWallStatic") & Congruent == "1no motion") %>% 
-                          group_by(Congruent))$Mean_Mean_Minus_velH[1] + 1, 
-                   xend = 3.5, 
-                   yend = (Parameters %>% 
-                             filter(Condition %in% c("BlankWall", "BlankWallStatic") & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$Mean_Mean_Minus_velH[1] + 1),
-               size = 1,
-               color = "black",
-               linetype = 5)
+  annotate("segment",x = 0.6, xend = 1.4, y = -1, yend = -1, linetype = 2, size = 2) +
+  annotate("segment",x = 1.6, xend = 2.4, y = 1, yend = 1, linetype = 2, size = 2)
   
-Laurence4 = ggplot(Parameters %>% filter(Condition %in% c("BlankWall", "BlankWallStatic")), aes(Congruent,SD,color = Congruent)) +
+Panel4 = ggplot(Parameters_Blank %>% filter(Congruent != "1no motion"), aes(Congruent,DifferenceToBaseline_SD,color = Congruent)) +
   geom_point(alpha = 0.5, size = 3) +
-  scale_x_discrete(labels = c("Static","Same Direction", "Opposite Directions")) +
+  scale_x_discrete(labels = c("Same Direction", "Opposite Directions")) +
   theme(legend.position = "") +
   ggtitle("Precision - Blank Wall") +
-  ylab("SD (m/s)") +
-  scale_color_manual(values = c(Red,BlauUB, "lightblue")) +
+  ylab("SD Difference from Static (m/s)") +
+  scale_color_manual(values = c(BlauUB, "lightblue")) +
   theme(axis.title.x=element_blank()) +
-#  coord_cartesian(ylim = c(0,5.5)) +
-  geom_point(aes(Congruent,Mean_SD), size = 8) +
-  annotate("text", x = 1.5, y = 7.5, label = paste0("95% CI = [",
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_SD), size = 8) +
+  annotate("text", x = 1, y = 3.5, label = paste0("95% CI = [",
                                                     round(ConfidenceIntervals_Blankwall["Congruentcongruent:velH_Pest",1],2),
                                                     ";",
                                                     round(ConfidenceIntervals_Blankwall["Congruentcongruent:velH_Pest",2],2),
                                                     "]")) +
-  # annotate("text", x = 1.5, y = 4, label = if(summary(mod1_BlankWall)$coef[23] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_BlankWall)$coef[23],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 2, y = 7, yend = 7) +
-  annotate("text", x = 2, y = 9, label = paste0("95% CI = [",
+  annotate("text", x = 2, y = 3.5, label = paste0("95% CI = [",
                                                 round(ConfidenceIntervals_Blankwall["Congruentincongruent:velH_Pest",1],2),
                                                 ";",
                                                 round(ConfidenceIntervals_Blankwall["Congruentincongruent:velH_Pest",2],2),
                                                 "]")) +
-  annotate("segment", x = 1, xend = 3, y = 8.5, yend = 8.5) +
-  geom_hline(yintercept = mean((Parameters %>% filter(Condition %in% c("BlankWall", "BlankWallStatic") & Congruent == "1no motion"))$SD),
+  geom_hline(yintercept = 0,
              linetype = 3)
 
-Laurence5 = ggplot(Parameters %>% filter(Condition %in% c("WallMoves", "RegularWallStatic")), aes(Congruent,Mean_Minus_velH,color = Congruent)) +
+
+Parameters_MovingWall = Parameters %>%
+  filter(Condition %in% c("RegularWallStatic", "WallMoves")) %>% 
+  group_by(velH,Participant) %>%
+  filter(length(Mean) == 3) %>% 
+  arrange(Participant,velH,Condition) %>%
+  mutate(Baseline_PSE = Mean[Congruent == "1no motion"],
+         Baseline_SD = SD[Congruent == "1no motion"],
+         DifferenceToBaseline_PSE = Mean-Baseline_PSE,
+         DifferenceToBaseline_SD = SD-Baseline_SD) %>% 
+  group_by(Congruent) %>% 
+  mutate(Mean_DifferenceToBaseline_PSE = mean(DifferenceToBaseline_PSE[Congruent != "1no motion"]),
+         Mean_DifferenceToBaseline_SD = mean(DifferenceToBaseline_SD[Congruent != "1no motion"]))
+
+Panel5 = ggplot(Parameters_MovingWall %>% filter(Congruent != "1no motion"), 
+                   aes(Congruent,DifferenceToBaseline_PSE,color = Congruent)) +
   geom_point(alpha = 0.2, size = 3) +
-  geom_point(aes(Congruent,Mean_Mean_Minus_velH), size = 8) +
-  scale_x_discrete(labels = c("Static","Same Direction", "Opposite Directions")) +
-  ylab("PSE (m/s)") +
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_PSE), size = 8) +
+  scale_x_discrete(labels = c("Same Direction", "Opposite Directions")) +
+  ylab("PSE Difference from Static (m/s)") +
   theme(legend.position = "") +
   ggtitle("Accuracy - Moving Wall") +
   theme(axis.title.x=element_blank()) +
-#  coord_cartesian(ylim = c(-6.5,2)) +
-  scale_color_manual(values = c(Red,BlauUB, "lightblue")) +
-  annotate("text", x = 1.5, y = 1, label = paste0("95% CI = [",
+  scale_color_manual(values = c(BlauUB, "lightblue")) +
+  annotate("text", x = 1, y = 2, label = paste0("95% CI = [",
                                                   round(ConfidenceIntervals_WallMoves["Congruentcongruent",1],2),
                                                   ";",
                                                   round(ConfidenceIntervals_WallMoves["Congruentcongruent",2],2),
                                                   "]")) +
-  annotate("segment", x = 1, xend = 2, y = 0.5, yend = 0.5) +
-  # annotate("text", x = 1.5, y = 1.25, label = if(summary(mod1_WallMoves)$coef[20] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_WallMoves)$coef[20],3))} else{"p < 0.001"}) +
   annotate("text", x = 2, y = 2, label = paste0("95% CI = [",
                                                 round(ConfidenceIntervals_WallMoves["Congruentincongruent",1],2),
                                                 ";",
                                                 round(ConfidenceIntervals_WallMoves["Congruentincongruent",2],2),
                                                 "]")) +
-  # annotate("text", x = 2.5, y = 1.75, label = if(summary(mod1_WallMoves)$coef[21] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_WallMoves)$coef[21],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 3, y = 1.5, yend = 1.5) +
-  geom_hline(yintercept = mean((Parameters %>% filter(Condition %in% c("WallMoves", "RegularWallStatic") & Congruent == "1no motion"))$Mean_Minus_velH),
+  geom_hline(yintercept = 0,
              linetype = 3) +
-  geom_segment(aes(x = 1.5, 
-                   y = (Parameters %>% 
-                          filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                          group_by(Congruent))$Mean_Mean_Minus_velH[1] - 1, 
-                   xend = 2.5, 
-                   yend = (Parameters %>% 
-                             filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$Mean_Mean_Minus_velH[1] - 1),
-               size = 1,
-               color = "black",
-               linetype = 5) +
-  geom_segment(aes(x = 2.5, 
-                   y = (Parameters %>% 
-                          filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                          group_by(Congruent))$Mean_Mean_Minus_velH[1] + 1, 
-                   xend = 3.5, 
-                   yend = (Parameters %>% 
-                             filter(Condition %in% c("RegularCondition", "RegularWallStatic") & Congruent == "1no motion") %>% 
-                             group_by(Congruent))$Mean_Mean_Minus_velH[1] + 1),
-               size = 1,
-               color = "black",
-               linetype = 5)
+  annotate("segment",x = 0.6, xend = 1.4, y = -1, yend = -1, linetype = 2, size = 2) +
+  annotate("segment",x = 1.6, xend = 2.4, y = 1, yend = 1, linetype = 2, size = 2)
 
-Laurence6 = ggplot(Parameters %>% filter(Condition %in% c("WallMoves", "RegularWallStatic")), aes(Congruent,SD,color = Congruent)) +
+Panel6 = ggplot(Parameters_MovingWall %>% filter(Congruent != "1no motion"), 
+                   aes(Congruent,DifferenceToBaseline_SD,color = Congruent)) +
   geom_point(alpha = 0.4, size = 3) +
-  geom_point(aes(Congruent,Mean_SD), size = 8) +
-  scale_x_discrete(labels = c("Static","Same Direction", "Opposite Directions")) +
+  geom_point(aes(Congruent,Mean_DifferenceToBaseline_SD), size = 8) +
+  scale_x_discrete(labels = c("Same Direction", "Opposite Directions")) +
   theme(legend.position = "") +
   ggtitle("Precision - Moving Wall") +
-  ylab("SD (m/s)") +
+  ylab("SD Difference from Static (m/s)") +
   theme(axis.title.x=element_blank()) +
-#  coord_cartesian(ylim = c(0,5.5)) +
-  scale_color_manual(values = c(Red,BlauUB, "lightblue")) +
-  annotate("text", x = 1.5, y = 7.5, label = paste0("95% CI = [",
+  scale_color_manual(values = c(BlauUB, "lightblue")) +
+  annotate("text", x = 1, y = 5.5, label = paste0("95% CI = [",
                                                     round(ConfidenceIntervals_WallMoves["Congruentcongruent:velH_Pest",1],2),
                                                     ";",
                                                     round(ConfidenceIntervals_WallMoves["Congruentcongruent:velH_Pest",2],2),
                                                     "]")) +
-  # annotate("text", x = 1.5, y = 3.75, label = if(summary(mod1_WallMoves)$coef[23] >= 0.001){paste0("p = ",
-  #                                             round(summary(mod1_WallMoves)$coef[23],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 2, y = 7, yend = 7) +
-  annotate("text", x = 2, y = 9, label = paste0("95% CI = [",
+  annotate("text", x = 2, y = 5.5, label = paste0("95% CI = [",
                                                 round(ConfidenceIntervals_WallMoves["Congruentincongruent:velH_Pest",1],2),
                                                 ";",
                                                 round(ConfidenceIntervals_WallMoves["Congruentincongruent:velH_Pest",2],3),
                                                 "]")) +
-  # annotate("text", x = 2, y = 4.75, label = if(summary(mod1_WallMoves)$coef[24] >= 0.001){paste0("p = ",
-  #                                           round(summary(mod1_WallMoves)$coef[24],3))} else{"p < 0.001"}) +
-  annotate("segment", x = 1, xend = 3, y = 8.5, yend = 8.5) +
-  geom_hline(yintercept = mean((Parameters %>% filter(Condition %in% c("WallMoves", "RegularWallStatic") & Congruent == "1no motion"))$SD),
+  geom_hline(yintercept = 0,
              linetype = 3)
 
-plot_grid(Laurence1,Laurence2, nrow = 1, labels = "AUTO")
-ggsave("Figures/Main Plots Regular Condition.jpg", w = 10, h = 4.5)
+###################Figure 3
+plot_grid(Panel1,Panel2, nrow = 1, labels = "AUTO")
+ggsave("Figures/(Figure 3) Main Plots Regular Condition Difference.jpg", w = 9, h = 5)
 
-plot_grid(Laurence3, Laurence4, Laurence5,Laurence6, nrow = 2, labels = "AUTO")
-ggsave("Figures/Main Plots Control Conditions.jpg", w = 10, h = 8)
+###################Figure 4
+plot_grid(Panel3, Panel4, Panel5,Panel6, nrow = 2, labels = "AUTO")
+ggsave("Figures/(Figure 4) Main Plots Control Conditions Difference.jpg", w = 9, h = 9)
