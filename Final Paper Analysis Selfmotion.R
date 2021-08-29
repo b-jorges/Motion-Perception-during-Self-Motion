@@ -41,3 +41,81 @@ load(file=paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/SavedVaria
 load(file=paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/SavedVariables/Include_Null.RData"))
 
 anova(Include, Include_Null)
+
+#########Look at a relationship between continuous self-motion score and performance
+Regular_Congruent_Judgement = glmer(cbind(Yes, Total - Yes) ~ Judgement*velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                    family = binomial(link = "probit"),
+                                    data = Data_GLM %>% filter(Condition %in% c("RegularCondition") & Congruent == "congruent"),
+                                    nAGQ = 0,
+                                    glmerControl(optimizer = "nloptwrap"))
+Regular_Congruent_Judgement_Null = glmer(cbind(Yes, Total - Yes) ~ velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                         family = binomial(link = "probit"),
+                                         data = Data_GLM %>% filter(Condition %in% c("RegularCondition") & Congruent == "congruent"),
+                                         nAGQ = 0,
+                                         glmerControl(optimizer = "nloptwrap"))
+anova(Regular_Congruent_Judgement,Regular_Congruent_Judgement_Null)
+
+
+Regular_Incongruent_Judgement = glmer(cbind(Yes, Total - Yes) ~ Judgement*velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                      family = binomial(link = "probit"),
+                                      data = Data_GLM %>% filter(Condition %in% c("RegularCondition") & Congruent == "incongruent"),
+                                      nAGQ = 0,
+                                      glmerControl(optimizer = "nloptwrap"))
+Regular_Incongruent_Judgement_Null = glmer(cbind(Yes, Total - Yes) ~ velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                           family = binomial(link = "probit"),
+                                           data = Data_GLM %>% filter(Condition %in% c("RegularCondition") & Congruent == "incongruent"),
+                                           nAGQ = 0,
+                                           glmerControl(optimizer = "nloptwrap"))
+anova(Regular_Incongruent_Judgement,Regular_Incongruent_Judgement_Null)
+
+
+BlankWall_Congruent_Judgement = glmer(cbind(Yes, Total - Yes) ~ Judgement*velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                      family = binomial(link = "probit"),
+                                      data = Data_GLM %>% filter(Condition %in% c("BlankWall") & Congruent == "congruent"),
+                                      nAGQ = 0,
+                                      glmerControl(optimizer = "nloptwrap"))
+BlankWall_Congruent_Judgement_Null = glmer(cbind(Yes, Total - Yes) ~ velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                           family = binomial(link = "probit"),
+                                           data = Data_GLM %>% filter(Condition %in% c("BlankWall") & Congruent == "congruent"),
+                                           nAGQ = 0,
+                                           glmerControl(optimizer = "nloptwrap"))
+anova(BlankWall_Congruent_Judgement,BlankWall_Congruent_Judgement_Null)
+
+
+BlankWall_Incongruent_Judgement = glmer(cbind(Yes, Total - Yes) ~ Judgement*velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                        family = binomial(link = "probit"),
+                                        data = Data_GLM %>% filter(Condition %in% c("BlankWall") & Congruent == "incongruent"),
+                                        nAGQ = 0,
+                                        glmerControl(optimizer = "nloptwrap"))
+BlankWall_Incongruent_Judgement_Null = glmer(cbind(Yes, Total - Yes) ~ velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                             family = binomial(link = "probit"),
+                                             data = Data_GLM %>% filter(Condition %in% c("BlankWall") & Congruent == "incongruent"),
+                                             nAGQ = 0,
+                                             glmerControl(optimizer = "nloptwrap"))
+anova(BlankWall_Incongruent_Judgement,BlankWall_Incongruent_Judgement_Null)
+
+
+WallMoves_Congruent_Judgement = glmer(cbind(Yes, Total - Yes) ~ Judgement*velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                      family = binomial(link = "probit"),
+                                      data = Data_GLM %>% filter(Condition %in% c("WallMoves") & Congruent == "congruent"),
+                                      nAGQ = 0,
+                                      glmerControl(optimizer = "nloptwrap"))
+WallMoves_Congruent_Judgement_Null = glmer(cbind(Yes, Total - Yes) ~ velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                           family = binomial(link = "probit"),
+                                           data = Data_GLM %>% filter(Condition %in% c("WallMoves") & Congruent == "congruent"),
+                                           nAGQ = 0,
+                                           glmerControl(optimizer = "nloptwrap"))
+anova(WallMoves_Congruent_Judgement,WallMoves_Congruent_Judgement_Null)
+
+
+WallMoves_Incongruent_Judgement = glmer(cbind(Yes, Total - Yes) ~ Judgement*velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                        family = binomial(link = "probit"),
+                                        data = Data_GLM %>% filter(Condition %in% c("WallMoves") & Congruent == "incongruent"),
+                                        nAGQ = 0,
+                                        glmerControl(optimizer = "nloptwrap"))
+WallMoves_Incongruent_Judgement_Null = glmer(cbind(Yes, Total - Yes) ~ velH_Pest + (velH_Pest| Participant) + (velH_Pest| velH),
+                                             family = binomial(link = "probit"),
+                                             data = Data_GLM %>% filter(Condition %in% c("WallMoves") & Congruent == "incongruent"),
+                                             nAGQ = 0,
+                                             glmerControl(optimizer = "nloptwrap"))
+anova(WallMoves_Incongruent_Judgement,WallMoves_Incongruent_Judgement_Null)

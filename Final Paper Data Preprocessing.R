@@ -12,8 +12,8 @@ theme_set(theme_cowplot()) #sets design parameters for data visualization
 ###velH_Subject 0.25/-0.25 = participant moves, but wall is blank; desired response 1, acceptable [0.6;1]; negative = wall moves left, positive = wall moves right
 
 ####the following function gets the current path of this script
-# setwd(dirname(rstudioapi::getSourceEditorContext()$path)) #set path of this script as working directory
-# 
+setwd(dirname(rstudioapi::getSourceEditorContext()$path)) #set path of this script as working directory
+
 # Data_MainExperiment =  openxlsx::read.xlsx("Data/All Data_Final.xlsx", sheet = 3) #load main file
 # Data_Selfmotion = openxlsx::read.xlsx("Data/All Data_Final.xlsx", sheet = 4) #load selfmotion file
 # 
@@ -144,7 +144,7 @@ theme_set(theme_cowplot()) #sets design parameters for data visualization
 # Data_MainExperiment$Include[Data_MainExperiment$Condition == "RegularWallStatic" | Data_MainExperiment$Condition == "BlankWallStatic"] = "yes"
 # 
 # Data_GLM =
-#   select(Data_MainExperiment,c(Participant,Congruent,velH,velH_Pest,Difference,Yes,Total,velH_Subject,SelfMotionPresent,Static,Condition,Include)) %>%
+#   select(Data_MainExperiment,c(Participant,Congruent,velH,velH_Pest,Difference,Yes,Total,velH_Subject,SelfMotionPresent,Static,Condition,Include, Judgement)) %>%
 #   distinct()
 # 
 # QuickPsy = quickpsy::quickpsy(Data_MainExperiment,
